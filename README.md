@@ -1,0 +1,3 @@
+# HikNativePluginhttps://github.com/404NotFount/HikNativePlugin
+这是android端的插件版本  试用于对接海康视频SDK
+插件调试去AndroidManifest把TestActivity解除注释就好，打包主要注释掉默认启动项
