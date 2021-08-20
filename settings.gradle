@@ -1,0 +1,3 @@
+include ':HikVideoPlugin'
+include ':app'
+rootProject.name = "NativePlugin"

@@ -1,0 +1,14 @@
+{
+  "nativePlugins": [
+    {
+      "hooksClass" : "com.bitmap.hikvideoplugin.TestModule_AppProxy",
+      "plugins": [
+        {
+          "type": "module",
+          "name": "Hik-Video-Module",
+          "class": "com.bitmap.hikvideoplugin.HikVideoModule"
+        }
+      ]
+    }
+  ]
+}

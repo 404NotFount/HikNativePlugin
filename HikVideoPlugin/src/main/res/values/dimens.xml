@@ -1,0 +1,8 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="fab_margin_big">32dp</dimen>
+    <dimen name="btn_margin">8dp</dimen>
+    <dimen name="arrow_btn_size">25dp</dimen>
+    <dimen name="arrow_btn_size_smaller">20dp</dimen>
+    <dimen name="shape_round_angle">20dp</dimen>
+</resources>
