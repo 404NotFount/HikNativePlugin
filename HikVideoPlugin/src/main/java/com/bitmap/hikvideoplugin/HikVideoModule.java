@@ -71,11 +71,13 @@ public class HikVideoModule extends WXModule {
         if (checkPermissionsByArray(PERMISSIONS_STORAGE)){
             String previewUri = options.getString("previewUri");
             String cameraCode = options.getString("cameraCode");
+            String canControl = options.getString("canControl");
             jsCallback = callBack;
             if(mUniSDKInstance != null && mUniSDKInstance.getContext() instanceof Activity) {
                 Intent intent = new Intent(mUniSDKInstance.getContext(), PreviewActivity.class);
                 intent.putExtra("previewUri",previewUri);
                 intent.putExtra("cameraCode",cameraCode);
+                intent.putExtra("canControl",canControl);
                 ((Activity)mUniSDKInstance.getContext()).startActivityForResult(intent,REQUEST_CODE);
             }
         }else {

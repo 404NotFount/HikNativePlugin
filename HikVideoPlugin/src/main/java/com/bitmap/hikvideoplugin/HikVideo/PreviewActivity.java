@@ -89,6 +89,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
 
 
     private static Boolean isFirst = true;
+    private static String canControl = "true";
 
     /**
      * 录像操作视频信息暂存
@@ -148,6 +149,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             Intent intent = getIntent();
             previewUri = intent.getStringExtra("previewUri");
             cameraCode = intent.getStringExtra("cameraCode");
+            canControl = intent.getStringExtra("canControl");
         } catch (Exception e) {
             Log.e("获取出错", e + "");
         }
@@ -198,6 +200,17 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
         videoCamera.setOnClickListener(this);
         close.setOnClickListener(this);
 
+        if (canControl.equals("false")){
+            camera.setVisibility(View.GONE);
+            center.setVisibility(View.GONE);
+            videoCamera.setVisibility(View.GONE);
+            up.setVisibility(View.GONE);
+            left.setVisibility(View.GONE);
+            right.setVisibility(View.GONE);
+            down.setVisibility(View.GONE);
+            videoPlus.setVisibility(View.GONE);
+            videoMinus.setVisibility(View.GONE);
+        }
 
         //放大
         videoPlus.setOnTouchListener(new View.OnTouchListener() {
