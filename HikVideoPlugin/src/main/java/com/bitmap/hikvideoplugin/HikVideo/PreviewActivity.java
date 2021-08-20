@@ -83,8 +83,8 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
     private static String previewUri = "";
     private static String cameraCode = "";
     private static final String cameraSpeed = "50";
-    private static final String cameraControlUrl = "";
-    private static String getURLs = "";
+    private static final String cameraControlUrl = "http://47.108.31.185:8092/ipcControlCenter/ptz/controlling?";
+    private static String getURLs = "http://47.108.31.185:8092/ipcControlCenter/ptz/previewURLs?protocol=rtsp";
     private static Integer ReRequestCount = 0;   //3次重连机制
 
 
