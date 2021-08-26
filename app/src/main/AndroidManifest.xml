@@ -39,6 +39,13 @@
 <!--        </activity>-->
 
 
+        <meta-data
+            android:name="cameraControlUrl"
+            android:value=""/>
+        <meta-data
+            android:name="ControlUrl"
+            android:value=""/>
+
     </application>
 
 

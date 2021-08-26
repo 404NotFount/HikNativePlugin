@@ -9,6 +9,7 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -83,8 +84,8 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
     private static String previewUri = "";
     private static String cameraCode = "";
     private static final String cameraSpeed = "50";
-    private static final String cameraControlUrl = "http://47.108.31.185:8092/ipcControlCenter/ptz/controlling?";
-    private static String getURLs = "http://47.108.31.185:8092/ipcControlCenter/ptz/previewURLs?protocol=rtsp";
+    private static String cameraControlUrl = "";
+    private static String getURLs = "";
     private static Integer ReRequestCount = 0;   //3次重连机制
 
 
@@ -145,6 +146,16 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER ;   //应用申明不使用刘海区显示
             getWindow().setAttributes(lp);
         }
+
+        try {
+            ApplicationInfo appInfo = this.getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);
+            cameraControlUrl = appInfo.metaData.getString("cameraControlUrl");
+            getURLs = appInfo.metaData.getString("ControlUrl");
+
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
         try {
             Intent intent = getIntent();
             previewUri = intent.getStringExtra("previewUri");
@@ -319,16 +330,24 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
      * 按住控制云台
      */
     private void PressControlling(Integer action, String command) {
+        if (cameraControlUrl.equals("")){
+            ToastUtils.showShort("非法接口URL");
+            return;
+        }
         Log.e("按住控制云台", cameraControlUrl + "action=" + action + "&code=" + cameraCode + "&command=" + command + "&speed=" + cameraSpeed);
         HttpTools.okHttpGet(cameraControlUrl + "action=" + action + "&code=" + cameraCode + "&command=" + command + "&speed=" + cameraSpeed);
     }
 
     /**
-     * PressControlling
+     * releaseControlling
      * <p>
      * 释放控制云台
      */
     private void releaseControlling(Integer action, String command) {
+        if (cameraControlUrl.equals("")){
+            ToastUtils.showShort("非法接口URL");
+            return;
+        }
         Log.e("释放控制云台", cameraControlUrl + "action=" + action + "&code=" + cameraCode + "&command=" + command + "&speed=" + cameraSpeed);
         HttpTools.okHttpGet(cameraControlUrl + "action=" + action + "&code=" + cameraCode + "&command=" + command + "&speed=" + cameraSpeed);
     }
@@ -800,6 +819,10 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
      * 重新获取RTSP-url地址
      */
     private void GetPreviewURLs() {
+        if (getURLs.equals("")){
+            ToastUtils.showShort("非法接口URL");
+            return;
+        }
         HttpTools.okHttpGet(getURLs + "&code=" + cameraCode, new HttpTools.HttpBackListener() {
             @Override
             public void onSuccess(String data, int code) {
