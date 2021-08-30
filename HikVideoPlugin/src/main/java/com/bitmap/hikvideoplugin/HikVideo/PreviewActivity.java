@@ -8,6 +8,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -42,16 +43,16 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.bitmap.hikvideoplugin.HikVideo.widget.AutoHideView;
 import com.bitmap.hikvideoplugin.HikVideo.widget.PlayWindowContainer;
 import com.bitmap.hikvideoplugin.R;
 import com.bitmap.hikvideoplugin.http.HttpTools;
 import com.bitmap.hikvideoplugin.http.RtspBean;
+import com.bitmap.hikvideoplugin.utils.HwNotchUtils;
+import com.bitmap.hikvideoplugin.utils.RomUtils;
+import com.bitmap.hikvideoplugin.utils.XiaomiNotchUtils;
 import com.blankj.utilcode.util.ScreenUtils;
 import com.blankj.utilcode.util.SizeUtils;
 import com.blankj.utilcode.util.ToastUtils;
@@ -61,19 +62,10 @@ import com.hikvision.open.hikvideoplayer.HikVideoPlayerCallback;
 import com.hikvision.open.hikvideoplayer.HikVideoPlayerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.List;
 
-import static android.os.Environment.DIRECTORY_MOVIES;
-import static android.os.Environment.DIRECTORY_PICTURES;
-
-/**
- * 错误码开头：17是mgc或媒体取流SDK的错误，18是vod，19是dac
- */
 
 /**
  * 错误码开头：17是mgc或媒体取流SDK的错误，18是vod，19是dac
@@ -90,6 +82,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
 
 
     private static Boolean isFirst = true;
+    private static Boolean isBangs = false;
     private static String canControl = "true";
 
     /**
@@ -113,7 +106,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
      */
     protected LinearLayout up, left, right, down, close, center;
     protected LinearLayout videoPlus, videoMinus;
-    protected LinearLayout camera, videoCamera;
+    protected LinearLayout camera, videoCamera,cameraView;
 
 
     private String mUri;
@@ -140,11 +133,21 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);//防止键盘弹出
         super.setContentView(R.layout.activity_preview);
 
-        //关闭刘海屏显示
-        if (Build.VERSION.SDK_INT >= 28) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // Android P利用官方提供的API适配
             WindowManager.LayoutParams lp = getWindow().getAttributes();
-            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER ;   //应用申明不使用刘海区显示
+            // 始终允许窗口延伸到屏幕短边上的缺口区域
+            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
             getWindow().setAttributes(lp);
+            isBangs = true;
+        } else {
+            // Android P以下根据手机厂商的适配方案进行适配
+            if (RomUtils.isHuawei() && HwNotchUtils.hasNotch(this)) {
+                HwNotchUtils.setFullScreenWindowLayoutInDisplayCutout(getWindow());
+            } else if (RomUtils.isXiaomi() && XiaomiNotchUtils.hasNotch(this)) {
+                XiaomiNotchUtils.setFullScreenWindowLayoutInDisplayCutout(getWindow());
+            }
         }
 
         try {
@@ -191,6 +194,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
         camera = findViewById(R.id.camera);
         center = findViewById(R.id.center);
         videoCamera = findViewById(R.id.videoCamera);
+        cameraView = findViewById(R.id.cameraView);
         close = findViewById(R.id.close);
         up = findViewById(R.id.arrow_up);
         left = findViewById(R.id.arrow_left);
@@ -198,11 +202,10 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
         down = findViewById(R.id.arrow_down);
         videoPlus = findViewById(R.id.video_plus);
         videoMinus = findViewById(R.id.video_minus);
-
         videoPlus.setOnClickListener(this);
         videoMinus.setOnClickListener(this);
         //调试刷新按钮
-        center.setOnClickListener(this);
+//        center.setOnClickListener(this);
         down.setOnClickListener(this);
         right.setOnClickListener(this);
         left.setOnClickListener(this);
@@ -221,6 +224,15 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             down.setVisibility(View.GONE);
             videoPlus.setVisibility(View.GONE);
             videoMinus.setVisibility(View.GONE);
+        }
+        if (isBangs){
+            //设置根布局的paddingLeft
+            cameraView.setPadding(getStatusBarHeight(this), 0, 0, 0);
+//            View statusBarView = new View(this);
+//            statusBarView.setBackgroundColor(Color.TRANSPARENT);
+//            ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, getStatusBarHeight(this));
+//            //在根布局中添加一个状态栏高度的View
+//            cameraView.addView(statusBarView, 0, lp);
         }
 
         //放大
@@ -384,7 +396,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
         } else if (view.getId() == R.id.videoCamera) {
             executeRecordEvent();
         } else if (view.getId() == R.id.center) {
-            getNotchParams();
+//            getNotchParams();
 //            GetPreviewURLs();
 //            center.startAnimation(getRotateAnimationByCenter(2000, null));
 
@@ -434,6 +446,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
      * 隐藏系统ui
      */
     private void hideSystemUI() {
+
         //隐藏ActionBar 如果使用了NoActionBar的Theme则不需要隐藏actionBar
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
@@ -466,6 +479,14 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
         }
         //解决在华为手机上横屏时，状态栏不消失的问题
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); //隐藏状态栏
+//
+//        //解决在华为手机上横屏时 刘海区域显示白色的问题
+//        if (Build.VERSION.SDK_INT >= 28) {
+//            WindowManager.LayoutParams lp = getWindow().getAttributes();
+//            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT  ;   //应用申明不使用刘海区显示
+//            getWindow().setAttributes(lp);
+//        }
+
 
     }
 
@@ -1017,7 +1038,20 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             }
         }
     }
-
+    /**
+     * 获取状态栏高度
+     *
+     * @param context
+     * @return
+     */
+    public int getStatusBarHeight(Context context) {
+        int statusBarHeight = 0;
+        int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            statusBarHeight = context.getResources().getDimensionPixelSize(resourceId);
+        }
+        return statusBarHeight;
+    }
 
 
 

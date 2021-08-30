@@ -17,7 +17,13 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="FullScreenTheme" parent="AppTheme">
+        <!-- 全屏显示 -->
+        <item name="android:windowFullscreen">true</item>
 
+        <!-- 透明导航栏 -->
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
 
 
 </resources>

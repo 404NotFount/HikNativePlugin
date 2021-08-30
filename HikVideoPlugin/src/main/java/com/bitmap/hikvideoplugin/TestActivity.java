@@ -39,7 +39,7 @@ public class TestActivity extends AppCompatActivity {
                 if (checkPermissionsByArray(PERMISSIONS_STORAGE)) {
                     Intent intent = new Intent(TestActivity.this, PreviewActivity.class);
                     intent.putExtra("previewUri", url.getText().toString());
-                    intent.putExtra("cameraCode", "129e41335b704ee5b0f24aa6bfba64b6");
+                    intent.putExtra("cameraCode", "627e0c48247142ee85457f06f6b455f6");
                     intent.putExtra("canControl", "true");
                     startActivityForResult(intent, RequestCode);
                 } else {

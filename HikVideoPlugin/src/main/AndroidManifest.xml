@@ -15,7 +15,7 @@
         <activity
             android:name="com.bitmap.hikvideoplugin.HikVideo.PreviewActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:theme="@style/AppTheme"
+            android:theme="@style/FullScreenTheme"
             android:screenOrientation="landscape">
         </activity>
 
