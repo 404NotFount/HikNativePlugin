@@ -19,7 +19,7 @@ import okhttp3.Response;
 
 /**
  * Create By axd On 2020/10/29.
- * Describe：
+ * Describe：只限购买者使用，未经授权未经授权私自传播作者有权追究其责任
  * @author axd
  */
 public class HttpTools {

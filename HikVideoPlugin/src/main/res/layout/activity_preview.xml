@@ -49,7 +49,6 @@
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent">
-            
             <LinearLayout
                 android:id="@+id/close"
                 android:layout_marginTop="@dimen/fab_margin"
@@ -205,10 +204,30 @@
                     </ImageView>
                 </LinearLayout>
 
+            </LinearLayout>
 
+
+            <LinearLayout
+                android:id="@+id/voice"
+                android:layout_above="@+id/video_size_view"
+                android:layout_alignParentEnd="true"
+                android:layout_gravity="center"
+                android:layout_marginBottom="20dp"
+                android:layout_marginEnd="@dimen/fab_margin"
+                android:background="@drawable/shape_round_selector"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <ImageView
+                    android:layout_margin="5dp"
+                    android:layout_width="@dimen/arrow_btn_size"
+                    android:layout_height="@dimen/arrow_btn_size"
+                    android:background="@drawable/ic_keyboard_voice_24">
+                </ImageView>
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/video_size_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"

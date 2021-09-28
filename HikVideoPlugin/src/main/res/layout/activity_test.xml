@@ -7,7 +7,7 @@
     tools:context=".TestActivity">
     <EditText
         android:id="@+id/url"
-        android:text="rtsp://47.109.82.124:554/openUrl/aAtrrJS"
+        android:text="rtsp://47.109.82.124:554/openUrl/9utOrjW"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
     </EditText>

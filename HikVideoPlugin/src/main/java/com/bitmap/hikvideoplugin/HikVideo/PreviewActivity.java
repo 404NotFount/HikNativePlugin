@@ -6,9 +6,12 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -40,16 +43,21 @@ import android.view.animation.RotateAnimation;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.bitmap.hikvideoplugin.HikVideo.widget.AutoHideView;
 import com.bitmap.hikvideoplugin.HikVideo.widget.PlayWindowContainer;
 import com.bitmap.hikvideoplugin.R;
+import com.bitmap.hikvideoplugin.RecordMusic.BitRecordListener;
 import com.bitmap.hikvideoplugin.http.HttpTools;
 import com.bitmap.hikvideoplugin.http.RtspBean;
+import com.bitmap.hikvideoplugin.utils.BitFileUtil;
+import com.bitmap.hikvideoplugin.utils.BitRecordUtil;
 import com.bitmap.hikvideoplugin.utils.HwNotchUtils;
 import com.bitmap.hikvideoplugin.utils.RomUtils;
 import com.bitmap.hikvideoplugin.utils.XiaomiNotchUtils;
@@ -60,6 +68,7 @@ import com.blankj.utilcode.util.Utils;
 import com.hikvision.open.hikvideoplayer.HikVideoPlayer;
 import com.hikvision.open.hikvideoplayer.HikVideoPlayerCallback;
 import com.hikvision.open.hikvideoplayer.HikVideoPlayerFactory;
+import com.taobao.weex.bridge.JSCallback;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -71,19 +80,23 @@ import java.util.List;
  * 错误码开头：17是mgc或媒体取流SDK的错误，18是vod，19是dac
  */
 public class PreviewActivity extends Activity implements View.OnClickListener, HikVideoPlayerCallback, TextureView.SurfaceTextureListener {
-    private static final String TAG = "PreviewActivity";
-    private static final Integer ResultCode = 10001;
-    private static String previewUri = "";
-    private static String cameraCode = "";
-    private static final String cameraSpeed = "50";
-    private static String cameraControlUrl = "";
-    private static String getURLs = "";
-    private static Integer ReRequestCount = 0;   //3次重连机制
 
+    private final String TAG = "PreviewActivity";
+    private final Integer ResultCode = 10001;
+    private String previewUri = "";
+    private String cameraCode = "";
+    private final String cameraSpeed = "50";
+    private String cameraControlUrl = "";
+    private String getURLs = "";
+    private Integer ReRequestCount = 0;   //3次重连机制
 
-    private static Boolean isFirst = true;
-    private static Boolean isBangs = false;
-    private static String canControl = "true";
+    private BitRecordUtil recordUtil;   //录音
+    private File recordPath;   //录音文件
+
+    private  Boolean isStop = false;
+    private  Boolean isFirst = true;
+    private  Boolean isBangs = false;
+    private  String canControl = "true";
 
     /**
      * 录像操作视频信息暂存
@@ -104,7 +117,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
     /**
      * 控制按钮
      */
-    protected LinearLayout up, left, right, down, close, center;
+    protected LinearLayout up, left, right, down, close, center,voice;
     protected LinearLayout videoPlus, videoMinus;
     protected LinearLayout camera, videoCamera,cameraView;
 
@@ -132,7 +145,6 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
         super.onCreate(savedInstanceState);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);//防止键盘弹出
         super.setContentView(R.layout.activity_preview);
-
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // Android P利用官方提供的API适配
@@ -202,9 +214,10 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
         down = findViewById(R.id.arrow_down);
         videoPlus = findViewById(R.id.video_plus);
         videoMinus = findViewById(R.id.video_minus);
+        voice = findViewById(R.id.voice);
+        voice.setOnClickListener(this);
         videoPlus.setOnClickListener(this);
         videoMinus.setOnClickListener(this);
-        //调试刷新按钮
 //        center.setOnClickListener(this);
         down.setOnClickListener(this);
         right.setOnClickListener(this);
@@ -225,6 +238,11 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             videoPlus.setVisibility(View.GONE);
             videoMinus.setVisibility(View.GONE);
         }
+
+        recordUtil = new BitRecordUtil(this);
+        recordUtil.bindView(voice);
+
+
         if (isBangs){
             //设置根布局的paddingLeft
             cameraView.setPadding(getStatusBarHeight(this), 0, 0, 0);
@@ -334,7 +352,92 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
                 return false;
             }
         });
+
+        recordUtil.setOnRecordListener(new BitRecordListener() {
+            @Override
+            public String onInitPath() {
+                String fileName = MyUtils.getFileName("") + ".mp3";
+                String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator +"bitmapYZ/fisheryMp3/"+ fileName;
+                recordPath = new File(path);
+                File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath(),"bitmapYZ/fisheryMp3");
+                if(!file.exists()){    //如果路径不存在就创建
+                    file.mkdirs();    //mkdir();只能建一层目录。  mkdirs()多层
+                }
+                return path;
+            }
+
+            @Override
+            public void onSuccess(File file) {
+                tipDialog();
+            }
+        });
+        //播放回调
+        recordUtil.setPlayMediaStateListener(new BitRecordUtil.OnPlayMediaStateListener() {
+            @Override
+            public void onPlayMediaFinish(int action) {
+                tipDialog();
+            }
+        });
     }
+
+
+    /**
+     * 提示对话框
+     */
+    public void tipDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(PreviewActivity.this);
+        builder.setTitle("提示：");
+        builder.setMessage("是否发送?");
+        builder.setCancelable(false);            //点击对话框以外的区域是否让对话框消失
+
+        //设置正面按钮
+        builder.setPositiveButton("发送", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //回调给UniAPP进行业务逻辑操作
+//                JSONObject jsonObject =new JSONObject();
+//                jsonObject.put("path",recordPath);
+//                jsCallback.invoke(jsonObject);
+//                Toast.makeText(PreviewActivity.this, "你点击了发送", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+        //设置反面按钮
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                BitFileUtil.deleteFiles(recordPath);
+                dialog.dismiss();
+            }
+        });
+        //设置中立按钮
+        builder.setNeutralButton("播放", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                recordUtil.playMedia(recordPath);
+//                dialog.dismiss();
+            }
+        });
+
+        AlertDialog dialog = builder.create();      //创建AlertDialog对象
+        //对话框显示的监听事件
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                Log.e(TAG, "对话框显示了");
+            }
+        });
+        //对话框消失的监听事件
+        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                Log.e(TAG, "对话框消失了");
+            }
+        });
+        dialog.show();                              //显示对话框
+    }
+
+
 
     /**
      * PressControlling
@@ -347,7 +450,9 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             return;
         }
         Log.e("按住控制云台", cameraControlUrl + "action=" + action + "&code=" + cameraCode + "&command=" + command + "&speed=" + cameraSpeed);
-        HttpTools.okHttpGet(cameraControlUrl + "action=" + action + "&code=" + cameraCode + "&command=" + command + "&speed=" + cameraSpeed);
+        HttpTools.okHttpGet(cameraControlUrl + "action=" + action +
+                "&code=" + cameraCode + "&command=" + command +
+                "&speed=" + cameraSpeed);
     }
 
     /**
@@ -396,6 +501,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
         } else if (view.getId() == R.id.videoCamera) {
             executeRecordEvent();
         } else if (view.getId() == R.id.center) {
+
 //            getNotchParams();
 //            GetPreviewURLs();
 //            center.startAnimation(getRotateAnimationByCenter(2000, null));
@@ -847,6 +953,9 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
         HttpTools.okHttpGet(getURLs + "&code=" + cameraCode, new HttpTools.HttpBackListener() {
             @Override
             public void onSuccess(String data, int code) {
+                //防止请求之后马上关闭页面 or 数据延迟返回之前关闭页面导致播放异常闪退等，
+                //关闭页面既是清除所有的状态，制空等
+                if(isStop) return;
                 try {
                     RtspBean rtspBean = JSONArray.parseObject(data, RtspBean.class);
                     if (rtspBean.getCode().equals("20000") && rtspBean.getMessage().equals("成功")) {
@@ -885,10 +994,10 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             return false;
         }
 
-        if (!mUri.contains("rtsp")) {
-            ToastUtils.showShort("非法URI");
-            return false;
-        }
+//        if (!mUri.contains("rtsp")) {
+//            ToastUtils.showShort("非法URI");
+//            return false;
+//        }
 
         return true;
     }
@@ -993,6 +1102,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             resetExecuteState();
             mPlayer.stopPlay();
         }
+        isStop = true;
         isFirst = true;
         ReRequestCount = 0;
         setResult(ResultCode);

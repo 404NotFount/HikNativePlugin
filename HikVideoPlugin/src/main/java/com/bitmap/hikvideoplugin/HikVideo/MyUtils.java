@@ -15,6 +15,9 @@ import java.util.Locale;
 import static android.os.Environment.DIRECTORY_MOVIES;
 import static android.os.Environment.DIRECTORY_PICTURES;
 
+/**
+ * 只限购买者使用，未经授权未经授权私自传播作者有权追究其责任
+ */
 public class MyUtils {
     private static final String TAG = "MyUtils";
 

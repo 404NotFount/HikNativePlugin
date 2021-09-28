@@ -26,17 +26,17 @@
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true">
 
-<!--        <activity-->
-<!--            android:name="com.bitmap.hikvideoplugin.TestActivity"-->
-<!--            android:configChanges="keyboardHidden|orientation|screenSize"-->
-<!--            android:windowSoftInputMode="adjustResize">-->
+        <activity
+            android:name="com.bitmap.hikvideoplugin.TestActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:windowSoftInputMode="adjustResize">
 
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.MAIN" />-->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-<!--                <category android:name="android.intent.category.LAUNCHER" />-->
-<!--            </intent-filter>-->
-<!--        </activity>-->
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
 
         <meta-data

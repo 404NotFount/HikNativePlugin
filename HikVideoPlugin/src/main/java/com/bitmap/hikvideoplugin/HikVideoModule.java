@@ -14,14 +14,16 @@ import com.taobao.weex.bridge.JSCallback;
 import com.taobao.weex.common.WXModule;
 import io.dcloud.feature.uniapp.annotation.UniJSMethod;
 
-
+/**
+ * 只限购买者使用，未经授权未经授权私自传播作者有权追究其责任
+ */
 public class HikVideoModule extends WXModule {
     String NAME="name";
     String AGE ="age";
     public static int REQUEST_CODE = 1000;
 
     JSCallback jsCallback;
-    private static String[] PERMISSIONS_STORAGE = {"android.permission.WRITE_EXTERNAL_STORAGE" };
+    private static String[] PERMISSIONS_STORAGE = {"android.permission.WRITE_EXTERNAL_STORAGE","android.permission.RECORD_AUDIO" };
 
     @JSMethod(uiThread = true)
     public void testText(JSONObject options, JSCallback callBack){
@@ -74,6 +76,9 @@ public class HikVideoModule extends WXModule {
             String canControl = options.getString("canControl");
             jsCallback = callBack;
             if(mUniSDKInstance != null && mUniSDKInstance.getContext() instanceof Activity) {
+                //初始化
+                myApp.init(((Activity)mUniSDKInstance.getContext()).getApplication(),true);
+                //跳转
                 Intent intent = new Intent(mUniSDKInstance.getContext(), PreviewActivity.class);
                 intent.putExtra("previewUri",previewUri);
                 intent.putExtra("cameraCode",cameraCode);

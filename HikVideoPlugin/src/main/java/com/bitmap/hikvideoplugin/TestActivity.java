@@ -15,12 +15,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.alibaba.fastjson.JSONObject;
 import com.bitmap.hikvideoplugin.HikVideo.PreviewActivity;
 
 public class TestActivity extends AppCompatActivity {
     private static String[] PERMISSIONS_STORAGE = {
             "android.permission.READ_EXTERNAL_STORAGE",
-            "android.permission.WRITE_EXTERNAL_STORAGE"};
+            "android.permission.WRITE_EXTERNAL_STORAGE",
+            "android.permission.RECORD_AUDIO"};
     protected EditText url;
     protected Button btn;
     private static final Integer RequestCode = 10000;
@@ -29,6 +31,8 @@ public class TestActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
+
+        myApp.init(getApplication(),true);
 
         url = findViewById(R.id.url);
         btn = findViewById(R.id.btn);
@@ -39,7 +43,7 @@ public class TestActivity extends AppCompatActivity {
                 if (checkPermissionsByArray(PERMISSIONS_STORAGE)) {
                     Intent intent = new Intent(TestActivity.this, PreviewActivity.class);
                     intent.putExtra("previewUri", url.getText().toString());
-                    intent.putExtra("cameraCode", "627e0c48247142ee85457f06f6b455f6");
+                    intent.putExtra("cameraCode", "0e45b03459584cfe8f1e3b995e492826");
                     intent.putExtra("canControl", "true");
                     startActivityForResult(intent, RequestCode);
                 } else {
