@@ -17,6 +17,9 @@ import android.widget.EditText;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bitmap.hikvideoplugin.HikVideo.PreviewActivity;
+import com.bitmap.hikvideoplugin.common.HKConstants;
+import com.bitmap.hikvideoplugin.helper.CallBackHelper;
+import com.taobao.weex.bridge.JSCallback;
 
 public class TestActivity extends AppCompatActivity {
     private static String[] PERMISSIONS_STORAGE = {
@@ -26,7 +29,7 @@ public class TestActivity extends AppCompatActivity {
     protected EditText url;
     protected Button btn;
     private static final Integer RequestCode = 10000;
-
+    JSCallback callback;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,11 +43,21 @@ public class TestActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
+                callback = new JSCallback() {
+                    @Override
+                    public void invoke(Object o) {
+                    }
+                    @Override
+                    public void invokeAndKeepAlive(Object o) {
+                    }
+                };
+                CallBackHelper.eventCallback.put(HKConstants.RECORD_VOICE, callback);
                 if (checkPermissionsByArray(PERMISSIONS_STORAGE)) {
                     Intent intent = new Intent(TestActivity.this, PreviewActivity.class);
                     intent.putExtra("previewUri", url.getText().toString());
                     intent.putExtra("cameraCode", "0e45b03459584cfe8f1e3b995e492826");
                     intent.putExtra("canControl", "true");
+                    intent.putExtra("showRecordBtn", true);
                     startActivityForResult(intent, RequestCode);
                 } else {
                     requestPermissionsByArray(PERMISSIONS_STORAGE);

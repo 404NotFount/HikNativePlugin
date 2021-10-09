@@ -54,6 +54,8 @@ import com.bitmap.hikvideoplugin.HikVideo.widget.AutoHideView;
 import com.bitmap.hikvideoplugin.HikVideo.widget.PlayWindowContainer;
 import com.bitmap.hikvideoplugin.R;
 import com.bitmap.hikvideoplugin.RecordMusic.BitRecordListener;
+import com.bitmap.hikvideoplugin.common.HKConstants;
+import com.bitmap.hikvideoplugin.helper.CallBackHelper;
 import com.bitmap.hikvideoplugin.http.HttpTools;
 import com.bitmap.hikvideoplugin.http.RtspBean;
 import com.bitmap.hikvideoplugin.utils.BitFileUtil;
@@ -73,13 +75,19 @@ import com.taobao.weex.bridge.JSCallback;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.List;
+
+import javax.security.auth.callback.CallbackHandler;
 
 
 /**
  * 错误码开头：17是mgc或媒体取流SDK的错误，18是vod，19是dac
  */
 public class PreviewActivity extends Activity implements View.OnClickListener, HikVideoPlayerCallback, TextureView.SurfaceTextureListener {
+
+    //回调监听
+    public static HashMap<String, JSCallback> eventCallback = new HashMap<>();
 
     private final String TAG = "PreviewActivity";
     private final Integer ResultCode = 10001;
@@ -96,6 +104,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
     private  Boolean isStop = false;
     private  Boolean isFirst = true;
     private  Boolean isBangs = false;
+    private  Boolean showRecordBtn = false;
     private  String canControl = "true";
 
     /**
@@ -176,6 +185,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             previewUri = intent.getStringExtra("previewUri");
             cameraCode = intent.getStringExtra("cameraCode");
             canControl = intent.getStringExtra("canControl");
+            showRecordBtn = intent.getBooleanExtra("showRecordBtn",false);
         } catch (Exception e) {
             Log.e("获取出错", e + "");
         }
@@ -237,6 +247,11 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             down.setVisibility(View.GONE);
             videoPlus.setVisibility(View.GONE);
             videoMinus.setVisibility(View.GONE);
+            voice.setVisibility(View.GONE);
+        }
+
+        if (!showRecordBtn){
+            voice.setVisibility(View.GONE);
         }
 
         recordUtil = new BitRecordUtil(this);
@@ -387,7 +402,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
     public void tipDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(PreviewActivity.this);
         builder.setTitle("提示：");
-        builder.setMessage("是否发送?");
+        builder.setMessage("记录完成，是否发送？");
         builder.setCancelable(false);            //点击对话框以外的区域是否让对话框消失
 
         //设置正面按钮
@@ -395,10 +410,10 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 //回调给UniAPP进行业务逻辑操作
-//                JSONObject jsonObject =new JSONObject();
-//                jsonObject.put("path",recordPath);
-//                jsCallback.invoke(jsonObject);
-//                Toast.makeText(PreviewActivity.this, "你点击了发送", Toast.LENGTH_SHORT).show();
+                JSONObject jsonObject =new JSONObject();
+                jsonObject.put("path",recordPath.getPath());
+                CallBackHelper.invokeAndKeepAlive(HKConstants.RECORD_VOICE,jsonObject);
+                Toast.makeText(PreviewActivity.this, "你点击了发送", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             }
         });
@@ -1085,6 +1100,11 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
     @Override
     protected void onDestroy() {
         closePlugin();
+
+        JSONObject jsonObject =new JSONObject();
+        jsonObject.put("msg","this is callBack");
+        CallBackHelper.invoke(HKConstants.CLOSE_PLUGIN,jsonObject);
+        CallBackHelper.eventCallback = new HashMap<>();
         super.onDestroy();
 
     }
@@ -1105,7 +1125,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
         isStop = true;
         isFirst = true;
         ReRequestCount = 0;
-        setResult(ResultCode);
+//        setResult(ResultCode);
     }
 
     /**
@@ -1162,7 +1182,6 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
         }
         return statusBarHeight;
     }
-
 
 
 }

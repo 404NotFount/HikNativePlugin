@@ -4,25 +4,33 @@ package com.bitmap.hikvideoplugin;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Parcelable;
 import android.util.Log;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.alibaba.fastjson.JSONObject;
 import com.bitmap.hikvideoplugin.HikVideo.PreviewActivity;
+import com.bitmap.hikvideoplugin.common.HKConstants;
+import com.bitmap.hikvideoplugin.helper.CallBackHelper;
 import com.taobao.weex.annotation.JSMethod;
 import com.taobao.weex.bridge.JSCallback;
 import com.taobao.weex.common.WXModule;
 import io.dcloud.feature.uniapp.annotation.UniJSMethod;
 
 /**
+ * 作者：bitmap
  * 只限购买者使用，未经授权未经授权私自传播作者有权追究其责任
  */
 public class HikVideoModule extends WXModule {
+
+    private static final String TAG = "HikVideoModule";
+
+    Boolean showRecordBtn = false;
     String NAME="name";
     String AGE ="age";
     public static int REQUEST_CODE = 1000;
 
-    JSCallback jsCallback;
+//    JSCallback jsCallback;
     private static String[] PERMISSIONS_STORAGE = {"android.permission.WRITE_EXTERNAL_STORAGE","android.permission.RECORD_AUDIO" };
 
     @JSMethod(uiThread = true)
@@ -57,24 +65,11 @@ public class HikVideoModule extends WXModule {
     @UniJSMethod (uiThread = true)
     public void gotoPreviewActivity(JSONObject options){
 
-        String previewUri = options.getString("previewUri");
-        String cameraCode = options.getString("cameraCode");
-
-        if(mUniSDKInstance != null && mUniSDKInstance.getContext() instanceof Activity) {
-            Intent intent = new Intent(mUniSDKInstance.getContext(), PreviewActivity.class);
-            intent.putExtra("previewUri",previewUri);
-            intent.putExtra("cameraCode",cameraCode);
-            ((Activity)mUniSDKInstance.getContext()).startActivity(intent);
-        }
-    }
-
-    @UniJSMethod (uiThread = true)
-    public void gotoPreviewActivity(JSONObject options, JSCallback callBack){
         if (checkPermissionsByArray(PERMISSIONS_STORAGE)){
             String previewUri = options.getString("previewUri");
             String cameraCode = options.getString("cameraCode");
             String canControl = options.getString("canControl");
-            jsCallback = callBack;
+//            jsCallback = callBack;
             if(mUniSDKInstance != null && mUniSDKInstance.getContext() instanceof Activity) {
                 //初始化
                 myApp.init(((Activity)mUniSDKInstance.getContext()).getApplication(),true);
@@ -83,6 +78,31 @@ public class HikVideoModule extends WXModule {
                 intent.putExtra("previewUri",previewUri);
                 intent.putExtra("cameraCode",cameraCode);
                 intent.putExtra("canControl",canControl);
+                intent.putExtra("showRecordBtn",showRecordBtn);
+                ((Activity)mUniSDKInstance.getContext()).startActivityForResult(intent,REQUEST_CODE);
+            }
+        }else {
+            requestPermissionsByArray(PERMISSIONS_STORAGE);
+        }
+    }
+
+
+    @UniJSMethod (uiThread = true)
+    public void gotoPreviewActivity(JSONObject options, JSCallback callBack){
+        if (checkPermissionsByArray(PERMISSIONS_STORAGE)){
+            String previewUri = options.getString("previewUri");
+            String cameraCode = options.getString("cameraCode");
+            String canControl = options.getString("canControl");
+//            jsCallback = callBack;
+            if(mUniSDKInstance != null && mUniSDKInstance.getContext() instanceof Activity) {
+                //初始化
+                myApp.init(((Activity)mUniSDKInstance.getContext()).getApplication(),true);
+                //跳转
+                Intent intent = new Intent(mUniSDKInstance.getContext(), PreviewActivity.class);
+                intent.putExtra("previewUri",previewUri);
+                intent.putExtra("cameraCode",cameraCode);
+                intent.putExtra("canControl",canControl);
+                intent.putExtra("showRecordBtn",showRecordBtn);
                 ((Activity)mUniSDKInstance.getContext()).startActivityForResult(intent,REQUEST_CODE);
             }
         }else {
@@ -91,15 +111,42 @@ public class HikVideoModule extends WXModule {
 
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE && resultCode == 10001) {
-            JSONObject jsonObject =new JSONObject();
-            jsonObject.put("msg","this is callBack");
-            jsCallback.invoke(jsonObject);
+    /**
+     * 添加录音监听回调事件
+     * 添加这个监听之后才有录音图标
+     * @param callback
+     */
+    @UniJSMethod(uiThread = true)
+    public void addRecordEventListener(JSCallback callback) {
+        if (callback != null) {
+            Log.w(TAG,"addRecordEventListener");
+            showRecordBtn = true;
+            CallBackHelper.eventCallback.put(HKConstants.RECORD_VOICE, callback);
         }
     }
+
+
+    /**
+     * 插件销毁监听回调
+     * @param callback
+     */
+    @UniJSMethod(uiThread = true)
+    public void addClosePluginListener(JSCallback callback) {
+        if (callback != null) {
+            Log.w(TAG,"addClosePluginListener");
+            CallBackHelper.eventCallback.put(HKConstants.CLOSE_PLUGIN, callback);
+        }
+    }
+
+//    @Override
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if (requestCode == REQUEST_CODE && resultCode == 10001) {
+//            JSONObject jsonObject =new JSONObject();
+//            jsonObject.put("msg","this is callBack");
+//            jsCallback.invoke(jsonObject);
+//        }
+//    }
 
     /**
      * TODO：检查手机存储读写权限
