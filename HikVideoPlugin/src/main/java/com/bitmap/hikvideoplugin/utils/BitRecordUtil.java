@@ -145,9 +145,9 @@ public class BitRecordUtil {
                         if (startY < 0)
                             return true;
                         if (tempNowY - startY < CANCLE_LENGTH) {
-                            mTvRecord.setText("手指上滑，取消发送");
+                            mTvRecord.setText("手指上滑，取消");
                         } else {
-                            mTvRecord.setText("松开手指，取消发送");
+                            mTvRecord.setText("松开手指，发送");
                         }
                         break;
                     case MotionEvent.ACTION_CANCEL:

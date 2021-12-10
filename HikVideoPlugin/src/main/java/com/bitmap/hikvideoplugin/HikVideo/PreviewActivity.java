@@ -90,9 +90,11 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
     public static HashMap<String, JSCallback> eventCallback = new HashMap<>();
 
     private final String TAG = "PreviewActivity";
-    private final Integer ResultCode = 10001;
-    private String previewUri = "";
-    private String cameraCode = "";
+
+    private String previewUri = HKConstants.previewUri;
+    private final String cameraCode = HKConstants.cameraCode;
+
+
     private final String cameraSpeed = "50";
     private String cameraControlUrl = "";
     private String getURLs = "";
@@ -104,8 +106,9 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
     private  Boolean isStop = false;
     private  Boolean isFirst = true;
     private  Boolean isBangs = false;
-    private  Boolean showRecordBtn = false;
-    private  String canControl = "true";
+    private final Boolean showRecordBtn = HKConstants.showRecordBtn;
+    private final Boolean canControl = HKConstants.canControl;
+
 
     /**
      * 录像操作视频信息暂存
@@ -133,7 +136,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
 
     private String mUri;
     private HikVideoPlayer mPlayer;
-    private boolean mSoundOpen = false;
+    private boolean mSoundOpen = HKConstants.enableSound;
     private boolean mRecording = false;
     private boolean mDigitalZooming = true;
     private PlayerStatus mPlayerStatus = PlayerStatus.IDLE;//默认闲置
@@ -180,15 +183,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             e.printStackTrace();
         }
 
-        try {
-            Intent intent = getIntent();
-            previewUri = intent.getStringExtra("previewUri");
-            cameraCode = intent.getStringExtra("cameraCode");
-            canControl = intent.getStringExtra("canControl");
-            showRecordBtn = intent.getBooleanExtra("showRecordBtn",false);
-        } catch (Exception e) {
-            Log.e("获取出错", e + "");
-        }
+
         initView();
         initBtnView();
         initPlayWindowContainer();
@@ -237,7 +232,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
         videoCamera.setOnClickListener(this);
         close.setOnClickListener(this);
 
-        if (canControl.equals("false")){
+        if (!canControl){
             camera.setVisibility(View.GONE);
             center.setVisibility(View.GONE);
             videoCamera.setVisibility(View.GONE);
@@ -372,9 +367,9 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             @Override
             public String onInitPath() {
                 String fileName = MyUtils.getFileName("") + ".mp3";
-                String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator +"bitmapYZ/fisheryMp3/"+ fileName;
+                String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator +"Hik/Mp3/"+ fileName;
                 recordPath = new File(path);
-                File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath(),"bitmapYZ/fisheryMp3");
+                File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath(),"Hik/Mp3");
                 if(!file.exists()){    //如果路径不存在就创建
                     file.mkdirs();    //mkdir();只能建一层目录。  mkdirs()多层
                 }
@@ -464,8 +459,8 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             ToastUtils.showShort("非法接口URL");
             return;
         }
-        Log.e("按住控制云台", cameraControlUrl + "action=" + action + "&code=" + cameraCode + "&command=" + command + "&speed=" + cameraSpeed);
-        HttpTools.okHttpGet(cameraControlUrl + "action=" + action +
+        Log.e("按住控制云台", cameraControlUrl + "?action=" + action + "&code=" + cameraCode + "&command=" + command + "&speed=" + cameraSpeed);
+        HttpTools.okHttpGet(cameraControlUrl + "?action=" + action +
                 "&code=" + cameraCode + "&command=" + command +
                 "&speed=" + cameraSpeed);
     }
@@ -480,8 +475,8 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             ToastUtils.showShort("非法接口URL");
             return;
         }
-        Log.e("释放控制云台", cameraControlUrl + "action=" + action + "&code=" + cameraCode + "&command=" + command + "&speed=" + cameraSpeed);
-        HttpTools.okHttpGet(cameraControlUrl + "action=" + action + "&code=" + cameraCode + "&command=" + command + "&speed=" + cameraSpeed);
+        Log.e("释放控制云台", cameraControlUrl + "?action=" + action + "&code=" + cameraCode + "&command=" + command + "&speed=" + cameraSpeed);
+        HttpTools.okHttpGet(cameraControlUrl + "?action=" + action + "&code=" + cameraCode + "&command=" + command + "&speed=" + cameraSpeed);
     }
 
 
@@ -643,8 +638,8 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
 //        String picturePath = MyUtils.getCaptureImagePath(this);
 
         String fileName = MyUtils.getFileName("") + ".jpg";
-        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator +"bitmapYZ/fisheryPictures/"+ fileName;
-        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath(),"bitmapYZ/fisheryPictures");
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator +"Hik/Pictures/"+ fileName;
+        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath(),"Hik/Pictures");
         if(!file.exists()){    //如果路径不存在就创建
             file.mkdirs();    //mkdir();只能建一层目录。  mkdirs()多层
         }
@@ -652,8 +647,8 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
 
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 //             fileName = MyUtils.getFileName("") + ".jpg";
-//             path = Environment.getExternalStorageDirectory() + File.separator +"bitmapYZ/Pictures/"+ fileName;
-//             file = new File(Environment.getExternalStorageDirectory(),"bitmapYZ/Pictures");
+//             path = Environment.getExternalStorageDirectory() + File.separator +"Hik/Pictures/"+ fileName;
+//             file = new File(Environment.getExternalStorageDirectory(),"Hik/Pictures");
 //            if(!file.exists()){    //如果路径不存在就创建
 //                file.mkdirs();    //mkdir();只能建一层目录。  mkdirs()多层
 //            }
@@ -685,8 +680,8 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
             videoCamera.setSelected(true);
 
             videoFileName = MyUtils.getFileName("") + ".mp4";
-            videoPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator +"bitmapYZ/fisheryVideos/"+videoFileName;
-            videoFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(),"bitmapYZ/fisheryVideos");
+            videoPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator +"Hik/Videos/"+videoFileName;
+            videoFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(),"Hik/Videos");
             if(!videoFile.exists()){    //如果路径不存在就创建
                 videoFile.mkdirs();    //mkdir();只能建一层目录。  mkdirs()多层
             }
@@ -694,8 +689,8 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
 
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 //                videoFileName = MyUtils.getFileName("") + ".mp4";
-//                videoPath = Environment.getExternalStorageDirectory() + File.separator +"bitmapYZ/Videos/"+videoFileName;
-//                videoFile = new File(Environment.getExternalStorageDirectory(),"bitmapYZ/Videos");
+//                videoPath = Environment.getExternalStorageDirectory() + File.separator +"Hik/Videos/"+videoFileName;
+//                videoFile = new File(Environment.getExternalStorageDirectory(),"Hik/Videos");
 //                if(!videoFile.exists()){    //如果路径不存在就创建
 //                    videoFile.mkdirs();    //mkdir();只能建一层目录。  mkdirs()多层
 //                }
@@ -860,9 +855,9 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
 //        if (mDigitalZooming){
 //            executeDigitalZoom();
 //        }
-        if (mSoundOpen) {
-            executeSoundEvent();
-        }
+//        if (mSoundOpen) {
+//            executeSoundEvent();
+//        }
         if (mRecording) {
             executeRecordEvent();
         }
@@ -931,6 +926,7 @@ public class PreviewActivity extends Activity implements View.OnClickListener, H
                     case SUCCESS:
                         //播放成功
                         mPlayerStatus = PlayerStatus.SUCCESS;
+                        mPlayer.enableSound(HKConstants.enableSound);
                         playHintText.setVisibility(View.GONE);
                         textureView.setKeepScreenOn(true);//保持亮屏
                         break;

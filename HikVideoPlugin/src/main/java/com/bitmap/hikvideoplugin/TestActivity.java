@@ -54,10 +54,11 @@ public class TestActivity extends AppCompatActivity {
                 CallBackHelper.eventCallback.put(HKConstants.RECORD_VOICE, callback);
                 if (checkPermissionsByArray(PERMISSIONS_STORAGE)) {
                     Intent intent = new Intent(TestActivity.this, PreviewActivity.class);
-                    intent.putExtra("previewUri", url.getText().toString());
-                    intent.putExtra("cameraCode", "0e45b03459584cfe8f1e3b995e492826");
-                    intent.putExtra("canControl", "true");
-                    intent.putExtra("showRecordBtn", true);
+                    HKConstants.previewUri = "rtsp://";
+                    HKConstants.cameraCode = "";
+                    HKConstants.canControl = true;
+                    HKConstants.showRecordBtn = true;
+                    HKConstants.enableSound = false;
                     startActivityForResult(intent, RequestCode);
                 } else {
                     requestPermissionsByArray(PERMISSIONS_STORAGE);
