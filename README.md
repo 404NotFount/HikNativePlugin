@@ -5,6 +5,13 @@
 使用须知：由于该插件是自己项目适配的，没有做成便利性可拓展性强的版本，所以购买前请仔细阅读本文档，看是否符合自己需求
 
 
+# 插件打包
+
+  Gradle ->HikVideoPlugin ->Tasks -> other -> assembleRelease
+  把生成的aar放到uni的插件目录下，详情请去uni官方网站查看
+  插件市场已经上传 https://ext.dcloud.net.cn/plugin?id=6047
+
+
 
 # 引入插件
 
